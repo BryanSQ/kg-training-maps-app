@@ -1,0 +1,51 @@
+#map-container {
+  height: 400px;
+  width: 80vw;
+  border-radius: 25px;
+}
+
+.map-control-container {
+  display: flex;
+  width: 80vw;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.map-control-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  width: 33%;
+}
+
+.map-form-container {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  gap: 10px;
+}
+
+.map-form-item {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.marker-list-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: scroll;
+  padding: 20px 0px;
+  gap: 5px;
+}
+
+.marker-list-item {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
