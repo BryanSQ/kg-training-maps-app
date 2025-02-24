@@ -15,9 +15,9 @@ import FindMe from "./FindMe.jsx";
 import '../styles/map.css'
 
 import useDocumentTitle from "../hooks/useDocumentTitle.js";
-import useClipboard from "../hooks/useClipboard.js";
 import useQueryParams from "../hooks/useQueryParams.js";
 import useForm from "../hooks/useForm.js";
+import Clipboard from "./Clipboard.jsx";
 
 // useLocalStorage, load the last known location and markers. ✅
 
@@ -49,9 +49,9 @@ const Map = () => {
   const [map, setMap] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [copiedText, copyToClipboard, pasteClipboard] = useClipboard();
+  
 
-  const [searchbox, setSearchbox] = useState('')
+  
 
   useDocumentTitle(`Your current location is: ${location.name}`)
 
@@ -158,10 +158,7 @@ const Map = () => {
     setMetaMarkers(metaMarkers.filter(marker => marker.id !== markerId))
   }
 
-  const paste = async () => {
-    const clipboardText = await pasteClipboard()
-    setSearchbox(clipboardText)
-  }
+  
 
   return (
     <>
@@ -177,22 +174,12 @@ const Map = () => {
           <MapForm addUserLocation={addUserLocation} />
         </div>
 
-
         <div className="card">
-
-          <button onClick={() => copyToClipboard(window.location.href)}>
-            Copy URL
-          </button>
-          <label>
-            <button onClick={paste}>
-              paste
-            </button>            
-            <input type="text" name="searchbox" value={searchbox} readOnly/>
-          </label>
+          <Clipboard />
         </div>
 
         <div className="card">
-          <MarkerList markers={markers} handleDelete={deleteMarker} copy={copyToClipboard}/>
+          <MarkerList markers={markers} handleDelete={deleteMarker}/>
         </div>
 
       </div>

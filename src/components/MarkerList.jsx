@@ -1,14 +1,18 @@
-const MarkerList = ({ markers, handleDelete, copy }) =>{
+import useClipboard from "../hooks/useClipboard";
+
+const MarkerList = ({ markers, handleDelete }) =>{
+
+  const [copiedText, copyToClipboard] = useClipboard();
 
   return (
-    <section>
+    <section className="marker-container">
       {
         markers.length === 0
           ? <p>Try adding some markers.</p>
           :(
               markers.map((marker) => {
                 return (
-                  <div key={marker.id} >
+                  <div key={marker.id} className="marker-list-item" >
                     <span>
                       <p>
                         <strong>
@@ -20,7 +24,7 @@ const MarkerList = ({ markers, handleDelete, copy }) =>{
                     <button onClick={() => handleDelete(marker.id)}>
                       ❌
                     </button>
-                    <button onClick={() => copy(JSON.stringify(marker.position))}>
+                    <button onClick={() => copyToClipboard(JSON.stringify(marker.position))}>
                       📋
                     </button>
                     <button onClick={() => {console.log(marker);}}>
