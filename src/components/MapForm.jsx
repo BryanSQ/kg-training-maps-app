@@ -1,4 +1,4 @@
-import useForm from './hooks/useForm'
+import useForm from '../hooks/useForm'
 
 const MapForm = ({ addUserLocation }) => {
 
@@ -24,8 +24,6 @@ const MapForm = ({ addUserLocation }) => {
   }
 
   return (
-    <div>
-
       <form className="map-form-container" onSubmit={handleFormSubmit}>
 
         <label className="map-form-item">
@@ -47,7 +45,6 @@ const MapForm = ({ addUserLocation }) => {
           Add new location
         </button>
       </form>
-    </div>
   )
 }
 

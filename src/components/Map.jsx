@@ -1,21 +1,23 @@
 import { useEffect, useState } from "react";
 
-import { libraryLoader, initMap, geoLocationHelper, addMarker, getLocationData } from './map.utils.js'
+import { libraryLoader, initMap, geoLocationHelper, addMarker, getLocationData } from '../map.utils.js'
 
 import { v4 as uuidv4 } from 'uuid';
 
-import useLocalStorage from "./hooks/useLocalStorage.js";
+import useLocalStorage from "../hooks/useLocalStorage.js";
 
 import MapForm from './MapForm.jsx'
 import MarkerList from "./MarkerList.jsx";
+import FindMe from "./FindMe.jsx";
 
 
 
-import './styles/map.css'
-import useDocumentTitle from "./hooks/useDocumentTitle.js";
-import useClipboard from "./hooks/useClipboard.js";
-import useQueryParams from "./hooks/useQueryParams.js";
-import useForm from "./hooks/useForm.js";
+import '../styles/map.css'
+
+import useDocumentTitle from "../hooks/useDocumentTitle.js";
+import useClipboard from "../hooks/useClipboard.js";
+import useQueryParams from "../hooks/useQueryParams.js";
+import useForm from "../hooks/useForm.js";
 
 // useLocalStorage, load the last known location and markers. ✅
 
@@ -163,31 +165,20 @@ const Map = () => {
 
   return (
     <>
-      <div className='map-control-container'>
-        <div className="map-control-card">
-          <h3>
-            Greetings from: {isLoading ? "Searching" : location.name}
-          </h3>
 
-          <button type='button' onClick={searchHandler}>
-            Find Me!!!
-          </button>
+      <div className="sidebar">
 
+        <div className="card">
+          <FindMe search={searchHandler} isLoading={isLoading} locationName={location.name} />
         </div>
 
-        <div className="map-control-card">
+
+        <div className="card">
           <MapForm addUserLocation={addUserLocation} />
         </div>
 
-        <div className="map-control-card">
-          {
-            markers.length === 0                
-              ? 'Nothing to show here.'
-              : <MarkerList markers={markers} handleDelete={deleteMarker} copy={copyToClipboard}/>
-          }
-        </div>
 
-        <div className="map-control-card">
+        <div className="card">
 
           <button onClick={() => copyToClipboard(window.location.href)}>
             Copy URL
@@ -199,12 +190,20 @@ const Map = () => {
             <input type="text" name="searchbox" value={searchbox} readOnly/>
           </label>
         </div>
+
+        <div className="card">
+          <MarkerList markers={markers} handleDelete={deleteMarker} copy={copyToClipboard}/>
+        </div>
+
       </div>
 
-     
 
-      <div id="map-container">
+      <div className="app-container">
+        <div id="map-container">
+        </div>
+
       </div>
+
     </>
   )
 }

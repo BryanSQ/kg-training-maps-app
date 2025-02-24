@@ -1,13 +1,13 @@
-import Map from './Map.jsx'
-
 import './App.css'
+import Map from './components/Map'
+
 
 function App() {
 
   return (
-    <div>
+    <section className="main-app-layout">
       <Map />
-    </div>
+    </section>
   )
 }
 
