@@ -1,9 +1,18 @@
-import useForm from "../hooks/useForm";
+import { useContext } from "react";
+import { MapContext } from "../context/Map";
+import { addMarker } from "../map.utils";
 
-const MapForm = ({ addUserLocation }) => {
+import useForm from "../hooks/useForm";
+import { v4 as uuidv4 } from "uuid";
+import useLocalStorage from "../hooks/useLocalStorage";
+
+const MapForm = () => {
 	const [name, nameChange] = useForm();
 	const [lat, latChange] = useForm();
 	const [lng, lngChange] = useForm();
+
+	const { markers, setMarkers, map } = useContext(MapContext);
+	const [localMarkers, setLocalMarkers] = useLocalStorage("local-markers", []);
 
 	const handleFormSubmit = (event) => {
 		event.preventDefault();
@@ -18,6 +27,28 @@ const MapForm = ({ addUserLocation }) => {
 			};
 
 			addUserLocation(userInfo);
+		}
+	};
+
+	const addUserLocation = async (userInfo) => {
+		let { name, position } = userInfo;
+
+		position = {
+			lat: Number.parseFloat(position.lat),
+			lng: Number.parseFloat(position.lng),
+		};
+
+		try {
+			const marker = await addMarker(position, map, name);
+			map.setCenter(position);
+			map.setZoom(5);
+			setMarkers([...markers, { id: uuidv4(), position, name, marker }]);
+
+			// metaMarkers do not have the Google Advanced Marker object which has circular references
+			// and interfere with the JSON parsing of the markers to store on localStorage
+			setLocalMarkers([...localMarkers, { id: uuidv4(), position, name }]);
+		} catch (error) {
+			console.error(error.message);
 		}
 	};
 
