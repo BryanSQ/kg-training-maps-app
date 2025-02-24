@@ -1,59 +1,58 @@
 #map-container {
-  height: 400px;
-  width: 400px;
-  border-radius: 25px;
+	height: 400px;
+	width: 400px;
+	border-radius: 25px;
 }
 
 .findme-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
 }
 
 .map-form-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 1rem;
 }
 
 .map-form-item {
-  display: flex;
-  justify-content: space-between;
+	display: flex;
+	justify-content: space-between;
 }
 
 .clipboard-container {
-  display: flex;
-  justify-content: center;
+	display: flex;
+	justify-content: center;
 }
 
 .marker-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow: scroll;
-  gap: .5rem;
-  height: 100px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	overflow: scroll;
+	gap: .5rem;
+	height: 100px;
 }
 
 .marker-list-item {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  justify-content: center;
+	display: flex;
+	gap: 1rem;
+	align-items: center;
+	justify-content: center;
 }
 
 @media screen and (max-width: 600px) {
-  #map-container {
-    max-width: 100vw;
-  }
+	#map-container {
+		max-width: 100vw;
+	}
 
-  .map-form-container,
-  .map-form-item {
-    flex-wrap: wrap;
-    gap: .5rem;
-  }
-
+	.map-form-container,
+	.map-form-item {
+		flex-wrap: wrap;
+		gap: .5rem;
+	}
 }

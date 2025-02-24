@@ -1,22 +1,26 @@
 import { useEffect, useState } from "react";
 
-import { libraryLoader, initMap, geoLocationHelper, addMarker, getLocationData } from '../map.utils.js'
+import {
+	addMarker,
+	geoLocationHelper,
+	getLocationData,
+	initMap,
+	libraryLoader,
+} from "../map.utils.js";
 
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 import useLocalStorage from "../hooks/useLocalStorage.js";
 
-import MapForm from './MapForm.jsx'
-import MarkerList from "./MarkerList.jsx";
 import FindMe from "./FindMe.jsx";
+import MapForm from "./MapForm.jsx";
+import MarkerList from "./MarkerList.jsx";
 
-
-
-import '../styles/map.css'
+import "../styles/map.css";
 
 import useDocumentTitle from "../hooks/useDocumentTitle.js";
-import useQueryParams from "../hooks/useQueryParams.js";
 import useForm from "../hooks/useForm.js";
+import useQueryParams from "../hooks/useQueryParams.js";
 import Clipboard from "./Clipboard.jsx";
 
 // useLocalStorage, load the last known location and markers. ✅
@@ -27,172 +31,157 @@ import Clipboard from "./Clipboard.jsx";
 // useClipboard, share location
 // useQueryParams: process and go to the url location????
 
-
 // show map and markers list  side by side
 // go to marker on click
 
 const initialLocation = {
-  name: 'Unknown Location.',
-  coords: {
-    lat: 0,
-    lng: 0
-  }
-}
+	name: "Unknown Location.",
+	coords: {
+		lat: 0,
+		lng: 0,
+	},
+};
 
 const Map = () => {
+	const [location, setLocation] = useLocalStorage("location", initialLocation);
+	const [metaMarkers, setMetaMarkers] = useLocalStorage("meta-markers", []);
 
-  const [location, setLocation] = useLocalStorage('location', initialLocation);
-  const [metaMarkers, setMetaMarkers] = useLocalStorage('meta-markers', []);
+	const [markers, setMarkers] = useState([]);
 
-  const [markers, setMarkers] = useState([]);
+	const [map, setMap] = useState(null);
+	const [isLoading, setIsLoading] = useState(false);
 
-  const [map, setMap] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+	useDocumentTitle(`Your current location is: ${location.name}`);
 
-  
+	const [lat, setLat] = useQueryParams("lat", "");
+	const [lng, setLng] = useQueryParams("lng", "");
 
-  
+	useEffect(() => {
+		libraryLoader();
 
-  useDocumentTitle(`Your current location is: ${location.name}`)
+		const setNewMap = async () => {
+			try {
+				const newMap = await initMap(
+					"map-container",
+					"REACT_MAP_ID",
+					location.coords,
+				);
+				setMap(newMap);
+			} catch (error) {
+				console.error(error.message);
+			}
+		};
+		setNewMap();
+	}, []);
 
-  const [lat, setLat] = useQueryParams('lat', '');
-  const [lng, setLng] = useQueryParams('lng', '');
+	useEffect(() => {
+		// load meta-markers from localStorage and converts them into an object with a Google Advanced Marker
+		const loadMarkers = async () => {
+			const markersList = metaMarkers.map(async (marker) => {
+				const newMarker = await addMarker(marker.position, map, marker.name);
+				return {
+					...marker,
+					marker: newMarker,
+				};
+			});
 
+			const resolvedList = await Promise.all(markersList);
+			setMarkers(resolvedList);
+		};
 
-  useEffect(() => {
-    libraryLoader();
+		loadMarkers();
+	}, [map]);
 
-    const setNewMap = async () => {
-      try{
-        let newMap = await initMap('map-container', 'REACT_MAP_ID', location.coords)
-        setMap(newMap)
-      }
-      catch (error) {
-        console.error(error.message);
-      }
-    }
-    setNewMap();
-  }, [])
+	useEffect(() => {
+		if (lat !== "" && lng !== "") {
+			const coords = {
+				lat: Number.parseFloat(lat),
+				lng: Number.parseFloat(lng),
+			};
+			addMarker(coords, map, "Hi there!");
+		}
+	}, [lat, lng, map]);
 
-  useEffect(() => {
-    // load meta-markers from localStorage and converts them into an object with a Google Advanced Marker
-    const loadMarkers = async () => {
+	const getMarkerLocation = async (position) => {
+		const locationData = await getLocationData(position);
+		setLocation({ name: locationData, coords: position });
+		addMarker(position, map, "found you!");
+		setIsLoading(false);
+	};
 
-      const markersList = metaMarkers
-        .map(async (marker) => {
-          const newMarker = await addMarker(marker.position, map, marker.name);
-          return {
-            ...marker,
-            marker: newMarker
-          }
-        });
+	const searchHandler = async () => {
+		setIsLoading(true);
+		const { coords } = await geoLocationHelper();
 
-      const resolvedList = await Promise.all(markersList);
-      setMarkers(resolvedList)
-    }
+		const position = {
+			lat: coords.latitude,
+			lng: coords.longitude,
+		};
 
-    loadMarkers();
+		map.setCenter(position);
+		map.setZoom(13);
 
-  }, [map])
+		getMarkerLocation(position);
+	};
 
+	const addUserLocation = async (userLocation) => {
+		let { name, position } = userLocation;
 
-  useEffect(() => {
-    if(lat !== '' && lng !== ''){
-      const coords = {
-        lat: parseFloat(lat),
-        lng: parseFloat(lng)
-      }
-      addMarker(coords, map, 'Hi there!')
-    }
-  }, [lat, lng, map])
+		position = {
+			lat: Number.parseFloat(position.lat),
+			lng: Number.parseFloat(position.lng),
+		};
 
-  const getMarkerLocation = async (position) => {
-    const locationData =  await getLocationData(position)
-    setLocation({name: locationData, coords: position})
-    addMarker(position, map, 'found you!')
-    setIsLoading(false);
-  }
+		try {
+			const marker = await addMarker(position, map, name);
+			map.setCenter(position);
+			map.setZoom(5);
+			setMarkers([...markers, { id: uuidv4(), position, name, marker }]);
 
-  const searchHandler = async () => {
-    setIsLoading(true);
-    const {coords}  = await geoLocationHelper();
+			// metaMarkers do not have the Google Advanced Marker object which has circular references
+			// and interfere with the JSON parsing of the markers to store on localStorage
+			setMetaMarkers([...metaMarkers, { id: uuidv4(), position, name }]);
+		} catch (error) {
+			console.error(error.message);
+		}
+	};
 
-    const position = {
-      lat: coords.latitude,
-      lng: coords.longitude
-    };
-    
-    map.setCenter(position);
-    map.setZoom(13);
+	const deleteMarker = (markerId) => {
+		const markerElement = markers.find((m) => m.id === markerId);
+		markerElement.marker.setMap(null);
+		setMarkers(markers.filter((marker) => marker.id !== markerId));
+		setMetaMarkers(metaMarkers.filter((marker) => marker.id !== markerId));
+	};
 
-    getMarkerLocation(position);
-  }
+	return (
+		<>
+			<div className="sidebar">
+				<div className="card">
+					<FindMe
+						search={searchHandler}
+						isLoading={isLoading}
+						locationName={location.name}
+					/>
+				</div>
 
-  const addUserLocation = async (userLocation) => {
-    let { name, position } = userLocation;
+				<div className="card">
+					<MapForm addUserLocation={addUserLocation} />
+				</div>
 
-    position = {
-      lat: parseFloat(position.lat),
-      lng: parseFloat(position.lng)
-    }
+				<div className="card">
+					<Clipboard />
+				</div>
 
-    try{
-      const marker = await addMarker(position, map, name)
-      map.setCenter(position);
-      map.setZoom(5);
-      setMarkers([...markers, { id: uuidv4(), position, name, marker}]);
+				<div className="card">
+					<MarkerList markers={markers} handleDelete={deleteMarker} />
+				</div>
+			</div>
 
-      // metaMarkers do not have the Google Advanced Marker object which has circular references
-      // and interfere with the JSON parsing of the markers to store on localStorage
-      setMetaMarkers([...metaMarkers, { id: uuidv4(), position, name}])
-    }
-    catch(error){
-      console.error(error.message);
-    }
-  }
-
-  const deleteMarker = (markerId) => {
-    const markerElement = markers.find(m => m.id === markerId);
-    markerElement.marker.setMap(null);
-    setMarkers(markers.filter(marker => marker.id !== markerId))
-    setMetaMarkers(metaMarkers.filter(marker => marker.id !== markerId))
-  }
-
-  
-
-  return (
-    <>
-
-      <div className="sidebar">
-
-        <div className="card">
-          <FindMe search={searchHandler} isLoading={isLoading} locationName={location.name} />
-        </div>
-
-
-        <div className="card">
-          <MapForm addUserLocation={addUserLocation} />
-        </div>
-
-        <div className="card">
-          <Clipboard />
-        </div>
-
-        <div className="card">
-          <MarkerList markers={markers} handleDelete={deleteMarker}/>
-        </div>
-
-      </div>
-
-
-      <div className="app-container">
-        <div id="map-container">
-        </div>
-
-      </div>
-
-    </>
-  )
-}
+			<div className="app-container">
+				<div id="map-container"></div>
+			</div>
+		</>
+	);
+};
 
 export default Map;
